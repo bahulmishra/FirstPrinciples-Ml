@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FirstPrinciple ML — Demystifying Machine Learning</title>
+  <meta name="description"
+    content="Demystifying Machine Learning through Manual Matrix Mathematics. Implement ML algorithms from first principles using NumPy." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+
+  <!-- ═══════════ HEADER ═══════════ -->
+  <header class="header" id="top">
+    <div class="header-inner">
+      <div class="logo-group">
+        <div class="logo-icon">∇</div>
+        <div class="logo-text">
+          <span class="logo-name">FirstPrinciple</span>
+          <span class="logo-ml">ML</span>
+        </div>
+      </div>
+      <p class="header-tagline">Demystifying Machine Learning through Manual Matrix Mathematics</p>
+      <div class="step-indicators" id="stepIndicators">
+        <div class="step-dot active" id="dot0" onclick="goToStep(0)" title="Ingest"></div>
+        <div class="step-line" id="line01"></div>
+        <div class="step-dot" id="dot1" onclick="goToStep(1)" title="Configure"></div>
+        <div class="step-line" id="line12"></div>
+        <div class="step-dot" id="dot2" onclick="goToStep(2)" title="Preprocess"></div>
+        <div class="step-line" id="line23"></div>
+        <div class="step-dot" id="dot3" onclick="goToStep(3)" title="Train"></div>
+        <div class="step-line" id="line34"></div>
+        <div class="step-dot" id="dot4" onclick="goToStep(4)" title="Results"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════ INTRO HOMEPAGE ═══════════ -->
+  <section class="panel active" id="panelIntro">
+    <div class="intro-container">
+      <h1 class="intro-title">FirstPrinciple ML</h1>
+      <p class="intro-tagline">Demystifying Machine Learning through Manual Matrix Mathematics.</p>
+
+      <div class="intro-desc">
+        <p><strong>FirstPrinciples ML</strong> is a full-stack engineering and ML project designed to demystify
+          "black-box" Artificial Intelligence. Every algorithm and data-processing step in this system is hard-coded
+          from scratch using NumPy, replacing high-level library shortcuts with manual matrix mathematics, calculus, and
+          optimization routines.</p>
+        <p>The platform automates a rigorous machine learning pipeline, beginning with an Intelligent Ingestion Layer
+          that handles CSV, JSON, and live API data. I implemented a custom validation engine to manage categorical
+          encoding and enforce strict "clean data" protocols, including <i>Z</i>-score standardization and Correlation
+          Pruning (<i>r</i> &gt; 0.9) to eliminate redundant features before they reach the math engine.</p>
+        <p>At its core, the system executes hand-written implementations of Multi-variate Linear Regression via Gradient
+          Descent, Soft-Margin SVM using Hinge Loss, and advanced classification through KNN, Fuzzy C-Means, and
+          noise-resistant Possibilistic C-Means. To ensure scientific integrity, I built a custom K-Fold
+          Cross-Validation loop and a 65:35 training split. The final output translates complex tensors into a visual
+          Decision Surface, providing a geometric map of the model's logic and ensuring complete algorithmic
+          explainability.</p>
+      </div>
+
+      <div class="btn-row" style="justify-content: center; margin-top: 3rem;">
+        <button class="btn btn-primary btn-large" onclick="goToStep(0)">Go to Model →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ STEP 0 — INGEST ═══════════ -->
+  <section class="panel" id="panel0">
+    <div class="panel-header">
+      <span class="step-label">Step 01</span>
+      <h1>Data Ingestion</h1>
+      <p class="panel-sub">Import your dataset via CSV, JSON, or remote API URL</p>
+    </div>
+
+    <div class="content-grid two-col">
+      <!-- Drag-and-drop -->
+      <div class="card upload-zone" id="dropZone">
+        <div class="upload-icon">⬆</div>
+        <h3>Drop your file here</h3>
+        <p>Supports <strong>CSV</strong> and <strong>JSON</strong> formats</p>
+        <label class="btn btn-outline" for="fileInput">Choose File</label>
+        <input type="file" id="fileInput" accept=".csv,.json" hidden />
+        <div class="upload-filename" id="uploadFilename"></div>
+      </div>
+
+      <!-- URL input -->
+      <div class="card">
+        <div class="card-header-icon">🔗</div>
+        <h3>Load from URL</h3>
+        <p class="card-sub">Fetch a remote CSV or JSON dataset</p>
+        <div class="input-group">
+          <input type="text" id="urlInput" class="input-field" placeholder="https://example.com/data.csv" />
+          <button class="btn btn-primary" id="loadUrlBtn" onclick="loadFromUrl()">Fetch</button>
+        </div>
+
+        <div class="divider-line">or use a built-in sample</div>
+
+        <div class="sample-chips" id="sampleChips">
+          <div class="chip-loader">Loading samples…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview table -->
+    <div class="card hidden" id="previewCard">
+      <div class="card-row">
+        <div>
+          <h3>Dataset Preview</h3>
+          <span class="badge" id="shapeLabel"></span>
+        </div>
+        <button class="btn btn-primary" onclick="goToStep(1)">Configure Features →</button>
+      </div>
+      <div class="table-wrapper" id="previewTable"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ STEP 1 — CONFIGURE ═══════════ -->
+  <section class="panel" id="panel1">
+    <div class="panel-header">
+      <span class="step-label">Step 02</span>
+      <h1>Feature Configuration</h1>
+      <p class="panel-sub">Select features X, target y, and task type</p>
+    </div>
+
+    <div class="content-grid two-col">
+      <!-- Task type toggle -->
+      <div class="card">
+        <h3>Task Type</h3>
+        <div class="toggle-group" id="taskToggle">
+          <button class="toggle-btn active" id="btnRegression" onclick="setTask('regression')">
+            <span class="toggle-icon">📈</span> Regression
+          </button>
+          <button class="toggle-btn" id="btnClassification" onclick="setTask('classification')">
+            <span class="toggle-icon">🔵</span> Classification
+          </button>
+        </div>
+        <div class="info-box" id="taskInfo">
+          <strong>Regression:</strong> Predict a continuous numeric value (e.g., house price, temperature).
+        </div>
+
+        <h3 style="margin-top:1.5rem">Target Column (y)</h3>
+        <div class="col-list" id="targetList"></div>
+
+        <h3 style="margin-top:1.5rem">Preprocessing Options</h3>
+        <div class="option-row">
+          <label class="field-label">Encoding</label>
+          <select class="select-field" id="encodingSelect">
+            <option value="onehot">One-Hot Encoding</option>
+            <option value="label">Label Encoding</option>
+          </select>
+        </div>
+        <div class="option-row">
+          <label class="field-label">Imputation</label>
+          <select class="select-field" id="imputationSelect">
+            <option value="mean">Fill with Mean</option>
+            <option value="drop">Drop Rows</option>
+          </select>
+        </div>
+        <div class="option-row">
+          <label class="field-label">Scaling</label>
+          <select class="select-field" id="scalingSelect">
+            <option value="zscore">Z-Score Standardization</option>
+            <option value="minmax">Min-Max Normalization</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Feature checkboxes -->
+      <div class="card">
+        <h3>Feature Columns (X)</h3>
+        <p class="card-sub">Select columns to use as input predictors</p>
+        <div class="col-list" id="featureList"></div>
+      </div>
+    </div>
+
+    <!-- Feature Distribution Chart — shown live as columns are selected -->
+    <div class="card hidden" id="distCard">
+      <div class="card-row">
+        <div>
+          <h3>📊 Feature Distribution</h3>
+          <p class="card-sub" style="margin:0">Overlaid normalised histograms for all selected feature columns</p>
+        </div>
+        <div class="dist-toggle-group" id="distToggleGroup">
+          <button class="dist-toggle active" id="distBtnHistogram"
+            onclick="switchDistMode('histogram')">Histogram</button>
+          <button class="dist-toggle" id="distBtnBox" onclick="switchDistMode('box')">Box Plot</button>
+        </div>
+      </div>
+      <div id="featureDistPlot" style="min-height:340px"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goToStep(0)">← Back</button>
+      <button class="btn btn-primary" onclick="configureAndPreprocess()">Preprocess Data →</button>
+    </div>
+  </section>
+
+  <!-- ═══════════ STEP 2 — PREPROCESS ═══════════ -->
+  <section class="panel" id="panel2">
+    <div class="panel-header">
+      <span class="step-label">Step 03</span>
+      <h1>Data Transformation</h1>
+      <p class="panel-sub">Z-score scaling, correlation pruning, and 65:35 split</p>
+    </div>
+
+    <div class="content-grid two-col">
+      <div class="card">
+        <h3>Pipeline Report</h3>
+        <div class="pipeline-log" id="pipelineLog"></div>
+      </div>
+      <div class="card">
+        <h3>Correlation Heatmap</h3>
+        <p class="card-sub">Pairs with |r| &gt; 0.9 are pruned automatically</p>
+        <div id="corrHeatmap" style="min-height:300px"></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goToStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Select Algorithms →</button>
+    </div>
+  </section>
+
+  <!-- ═══════════ STEP 3 — TRAIN ═══════════ -->
+  <section class="panel" id="panel3">
+    <div class="panel-header">
+      <span class="step-label">Step 04</span>
+      <h1>The Math Engine</h1>
+      <p class="panel-sub">Select algorithms and configure hyperparameters</p>
+    </div>
+
+    <div class="content-grid two-col">
+      <!-- Algorithm selector -->
+      <div class="card">
+        <h3>Algorithm Selection</h3>
+        <p class="card-sub">All algorithms implemented in pure NumPy — no sklearn estimators</p>
+
+        <div class="algo-section" id="algoRegression">
+          <div class="algo-section-label">Regression</div>
+          <div class="algo-card" data-alg="linear_regression" onclick="toggleAlgo(this)">
+            <div class="algo-check">□</div>
+            <div>
+              <div class="algo-name">Linear Regression</div>
+              <div class="algo-desc">Batch Gradient Descent · MSE derivative</div>
+            </div>
+          </div>
+          <div class="algo-card" data-alg="hard_svm" onclick="toggleAlgo(this)">
+            <div class="algo-check">□</div>
+            <div>
+              <div class="algo-name">Hard SVM</div>
+              <div class="algo-desc">Hinge Loss · Subgradient descent</div>
+            </div>
+          </div>
+          <div class="algo-card" data-alg="soft_svm" onclick="toggleAlgo(this)">
+            <div class="algo-check">□</div>
+            <div>
+              <div class="algo-name">Soft SVM</div>
+              <div class="algo-desc">Slack variable · C parameter</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="algo-section hidden" id="algoClassification">
+          <div class="algo-section-label">Classification</div>
+          <div class="algo-card" data-alg="knn" onclick="toggleAlgo(this)">
+            <div class="algo-check">□</div>
+            <div>
+              <div class="algo-name">K-Nearest Neighbors</div>
+              <div class="algo-desc">Euclidean distance · Majority vote</div>
+            </div>
+          </div>
+          <div class="algo-card" data-alg="fcm" onclick="toggleAlgo(this)">
+            <div class="algo-check">□</div>
+            <div>
+              <div class="algo-name">Fuzzy C-Means</div>
+              <div class="algo-desc">Membership degree matrix</div>
+            </div>
+          </div>
+          <div class="algo-card" data-alg="pcm" onclick="toggleAlgo(this)">
+            <div class="algo-check">□</div>
+            <div>
+              <div class="algo-name">Possibilistic C-Means</div>
+              <div class="algo-desc">Typicality values · Outlier-robust</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hyperparameter panel -->
+      <div class="card">
+        <h3>Hyperparameters</h3>
+
+        <!-- Common -->
+        <div class="param-group" id="paramKFold">
+          <label class="field-label">K-Fold Value (k)</label>
+          <input type="number" id="paramK" class="input-field" value="5" min="2" max="20" />
+          <span class="param-hint">Divide data into K subsets for cross-validation</span>
+        </div>
+
+        <!-- GD params -->
+        <div class="param-group" id="paramGD">
+          <label class="field-label">Learning Rate (α) Array</label>
+          <input type="text" id="paramLR" class="input-field" value="0.01" placeholder="e.g. 0.01, 0.001" />
+          <label class="field-label" style="margin-top:0.75rem">Epochs Array</label>
+          <input type="text" id="paramEpochs" class="input-field" value="1000" placeholder="e.g. 1000, 2000" />
+          <label class="field-label" style="margin-top:0.75rem">Tolerance</label>
+          <input type="number" id="paramTol" class="input-field" value="0.0001" step="0.00001" />
+          <span class="param-hint">Stop if |Δloss| &lt; tolerance</span>
+        </div>
+
+        <!-- SVM C param -->
+        <div class="param-group hidden" id="paramC">
+          <label class="field-label">C — Slack Penalty Array (Soft SVM)</label>
+          <input type="text" id="paramCVal" class="input-field" value="1.0" placeholder="e.g. 0.1, 1.0, 10.0" />
+          <span class="param-hint">Higher C = less slack allowed</span>
+        </div>
+
+        <!-- KNN k -->
+        <div class="param-group hidden" id="paramKNN">
+          <label class="field-label">K — Nearest Neighbors Array</label>
+          <input type="text" id="paramKnnK" class="input-field" value="5" placeholder="e.g. 3, 5, 7" />
+          <span class="param-hint">Number of neighbors to vote</span>
+        </div>
+
+        <!-- Fuzzy params -->
+        <div class="param-group hidden" id="paramFuzzy">
+          <label class="field-label">m — Fuzziness Coefficient Array</label>
+          <input type="text" id="paramM" class="input-field" value="2.0" placeholder="e.g. 1.5, 2.0" />
+          <label class="field-label" style="margin-top:0.75rem">n_clusters — Number of Clusters Array</label>
+          <input type="text" id="paramClusters" class="input-field" value="3" placeholder="e.g. 2, 3, 4" />
+          <span class="param-hint">m=2 is the standard fuzziness value</span>
+        </div>
+
+        <div class="math-formula-box" id="formulaBox">
+          <span id="formulaText">Select an algorithm to see its update rule</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goToStep(2)">← Back</button>
+      <button class="btn btn-primary btn-large" id="runBtn" onclick="runTraining()">
+        <span class="run-icon">▶</span> Run Algorithm
+      </button>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-wrapper hidden" id="progressWrapper">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+      <p class="progress-label" id="progressLabel">Initializing…</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ STEP 4 — RESULTS ═══════════ -->
+  <section class="panel" id="panel4">
+    <div class="panel-header">
+      <span class="step-label">Step 05</span>
+      <h1>The Decision Surface</h1>
+      <p class="panel-sub">Explainable AI — see exactly how the model partitions feature space</p>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="card" id="leaderboardCard">
+      <div class="card-row">
+        <h3>🏆 Model Leaderboard</h3>
+        <div class="badge" id="taskBadge"></div>
+      </div>
+      <div id="leaderboardTable"></div>
+    </div>
+
+    <!-- Decision surface + scatter -->
+    <div class="content-grid two-col">
+      <div class="card">
+        <h3 id="surfaceTitle">Decision Surface (PCA Projection)</h3>
+        <p class="card-sub">Top 2 principal components shown — model partitions this 2D space</p>
+        <div id="surfacePlot" style="min-height:400px"></div>
+      </div>
+      <div class="card">
+        <h3>K-Fold CV Scores</h3>
+        <p class="card-sub">Cross-validation stability across all algorithms</p>
+        <div id="cvPlot" style="min-height:400px"></div>
+      </div>
+    </div>
+
+    <!-- Per-algorithm detail tables -->
+    <div class="card" id="metricsCard">
+      <h3>Detailed Metrics</h3>
+      <div id="metricsTable"></div>
+    </div>
+
+    <!-- Loss curves -->
+    <div class="card" id="lossCard">
+      <h3>Training Loss Curves</h3>
+      <p class="card-sub">Gradient Descent convergence over epochs</p>
+      <div id="lossPlot" style="min-height:350px"></div>
+    </div>
+
+    <!-- Math definitions -->
+    <div class="card definitions-card">
+      <h3>📐 First Principles Reference</h3>
+      <div class="def-grid">
+        <div class="def-item">
+          <div class="def-title">Z-Score Normalization</div>
+          <div class="def-formula">x' = (x − μ) / σ</div>
+        </div>
+        <div class="def-item">
+          <div class="def-title">Gradient Descent Update</div>
+          <div class="def-formula">θ = θ − α ∇J(θ)</div>
+        </div>
+        <div class="def-item">
+          <div class="def-title">Euclidean Distance</div>
+          <div class="def-formula">d = √Σ(xᵢ − yᵢ)²</div>
+        </div>
+        <div class="def-item">
+          <div class="def-title">R² Score</div>
+          <div class="def-formula">R² = 1 − SS_res / SS_tot</div>
+        </div>
+        <div class="def-item">
+          <div class="def-title">Hinge Loss</div>
+          <div class="def-formula">L = max(0, |y − ŷ| − ε)</div>
+        </div>
+        <div class="def-item">
+          <div class="def-title">FCM Membership Update</div>
+          <div class="def-formula">u_ij = 1 / Σ(d_ij/d_ik)^(2/m−1)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-outline" onclick="goToStep(3)">← Back to Training</button>
+      <button class="btn btn-primary" onclick="resetAll()">🔄 New Experiment</button>
+    </div>
+  </section>
+
+  <!-- Toast notification -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+
+</html>

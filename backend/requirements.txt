@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pandas
+numpy
+httpx
+aiofiles
+scikit-learn
+plotly
