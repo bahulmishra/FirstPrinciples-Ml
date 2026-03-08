@@ -1,0 +1,44 @@
+FirstPrinciple ML - Updated Implementation Plan
+===============================================
+
+This document outlines the end-to-end architecture and implementation details for the FirstPrinciple ML platform, specifically highlighting the advanced validation and hyperparameter tuning features.
+
+1. Intelligent Ingestion Layer (ingestor.py & main.py)
+------------------------------------------------------
+- Data Intake: Users can upload CSVs/JSONs, fetch remote datasets via URLs, or select built-in datasets (e.g., iris, regression_sample).
+- Initial Storage: The raw dataframe is processed into memory. Categorical column types are temporarily inferred for UI preview.
+
+2. Transparent Preprocessing Pipeline (processor.py)
+----------------------------------------------------
+- Immediate Splitting (`split_raw`): A rigid 65:35 Train-Test split is executed at the very beginning of the pipeline.
+- Null Guard & Imputation (`validate_and_impute`):
+  - If any column in the Train dataset has >5% missing values, the data is violently rejected (ValueError).
+  - If <=5% missing, the pipeline auto-imputes values using the Training Set's *Mean* (numeric) or *Mode* (categorical). These calculated values are then applied to the Test dataset to prevent data leakage.
+- Categorical Encoding (`encode_categoricals`): Converts textual categories to numerical representations (Label or One-Hot) fitted strictly on the Train set. The target column is specifically safeguarded from standard One-Hot Encoding.
+- Collinearity Pruning (`prune_correlated`): Features with Pearson correlation |r| > 0.9 on the Training set are dropped to minimize feature redundancy.
+- Feature Scaling (`scale_features`): Standardizes elements via Z-Score or normalizes via Min-Max, computing parameters (μ, σ) on the Train set and projecting those onto the Test set.
+
+3. Core Mathematical Engine (model_manager.py)
+----------------------------------------------
+- Pure NumPy Constraints: No high-level estimators (like scikit-learn) are permitted. All matrix operations, gradient derivations, and distance metrics are implemented manually.
+- Regression Models:
+  - Linear Regression via Batch Gradient Descent (MSE derivative).
+  - Hard-Margin SVM Regressor (Hinge Loss, subgradient iterations).
+  - Soft-Margin SVM Regressor (Slack variables configured via parameter 'C').
+- Classification Models:
+  - K-Nearest Neighbors (Euclidean Distance majority voting).
+  - Fuzzy C-Means (Membership Degree Matrix updates).
+  - Possibilistic C-Means (Outlier-robust typicality matrices bootstrapped from FCM).
+
+4. Hyperparameter Optimization & Evaluation
+-------------------------------------------
+- Grid Generation: Users on the frontend input arrays of hyperparameters (e.g., Learning Rates: "0.01, 0.05", K: "3, 5, 7"). The ModelManager builds a cartesian product grid of every possible combination.
+- Stratified Assessment: A custom `KFoldCV` class executes Cross-Validation strictly over the `X_train` matrix. Every hyperparameter combination is scored across all folds.
+- "Best Parameter" Selection: The backend averages the K-Fold CV scores for each configuration and elects the optimal hyperparameters maximizing validation performance.
+- Absolute Evaluation: The chosen configuration builds a fresh model, trains it over the entire 65% `X_train` dataset, and reports its final R² or Accuracy on the untouched 35% `X_test` dataset.
+
+5. Frontend Visualization (app.js & index.html)
+-----------------------------------------------
+- Leaderboard: Shows test evaluation metrics alongside optimal Hyperparameter configurations and CV stability scores.
+- Decision Surfaces: A 2D PCA projection of the dataset is computed. The optimal models are retrained specifically over this 2D plane to visibly partition the geometric space into distinct decision zones.
+- Loss Tracing: For gradient-dependent variants, continuous Epoch vs. Loss coordinates are plotted to verify proper convergence.
